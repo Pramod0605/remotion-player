@@ -34,7 +34,6 @@ app.get('/api/jobs', (_req, res) => {
         const jobs = fs.readdirSync(JOBS_DIR, { withFileTypes: true })
             .filter(d => d.isDirectory())
             .filter(d => {
-                // Only list jobs that have presentation.json
                 const presPath = path.join(JOBS_DIR, d.name, 'presentation.json');
                 return fs.existsSync(presPath);
             })
@@ -48,8 +47,35 @@ app.get('/api/jobs', (_req, res) => {
     }
 });
 
+// ── Image extension fallback ─────────────────────────────
+// presentation.json may reference .jpg but actual file is .png or vice versa
+const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp'];
+
+app.use('/jobs', (req, res, next) => {
+    // Only intercept image requests under /images/
+    if (!req.url.includes('/images/')) return next();
+
+    const filePath = path.join(JOBS_DIR, decodeURIComponent(req.url));
+
+    // If exact file exists, let express.static handle it
+    if (fs.existsSync(filePath)) return next();
+
+    // Try alternative extensions
+    const ext = path.extname(filePath).toLowerCase();
+    if (!IMAGE_EXTS.includes(ext)) return next();
+
+    const baseName = filePath.slice(0, -ext.length);
+    for (const altExt of IMAGE_EXTS) {
+        const altPath = baseName + altExt;
+        if (fs.existsSync(altPath)) {
+            return res.sendFile(altPath);
+        }
+    }
+
+    next();
+});
+
 // ── Static: Job Assets ───────────────────────────────────
-// Serve /jobs/{job_id}/* from the jobs directory
 app.use('/jobs', express.static(JOBS_DIR, {
     setHeaders: (res, filePath) => {
         const ext = path.extname(filePath).toLowerCase();
@@ -58,6 +84,10 @@ app.use('/jobs', express.static(JOBS_DIR, {
             '.webm': 'video/webm',
             '.mp3': 'audio/mpeg',
             '.wav': 'audio/wav',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.webp': 'image/webp',
         };
         if (mimeOverrides[ext]) {
             res.setHeader('Content-Type', mimeOverrides[ext]);

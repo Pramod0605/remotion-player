@@ -40,7 +40,7 @@ export const ChalkboardSection: React.FC<ChalkboardSectionProps> = ({
     const { durationInFrames } = useVideoConfig();
     const { settings } = useDevConfig();
 
-    const chalkSize = Math.round(settings.fontSize * 1.8);
+    const chalkSize = Math.round(settings.fontSize * 2.4);
 
     // Helper: auto-resize chalk text based on length
     // Short text (<=40 chars) keeps full size; longer text shrinks gently, min 45%
@@ -319,7 +319,7 @@ const ContentContent: React.FC<{
                         startFrame={activeSeg.startFrame + 10}
                         charDelay={2}
                         drawDuration={8}
-                        fontSize={autoSize(caption, chalkSize * 0.55)}
+                        fontSize={autoSize(caption, chalkSize * 0.75)}
                         color="#fffefa"
                     />
                 </div>
@@ -340,7 +340,7 @@ const ContentContent: React.FC<{
                     startFrame={0}
                     charDelay={3}
                     drawDuration={12}
-                    fontSize={autoSize(section.title, chalkSize * 0.9)}
+                    fontSize={autoSize(section.title, chalkSize * 1.3)}
                     color="#fffefa"
                 />
                 <div style={{
@@ -382,7 +382,7 @@ const ContentContent: React.FC<{
                             drawDuration={10}
                             fontSize={autoSize(
                                 (activeVisualBeat?.display_text || activeSeg.text).slice(0, 120),
-                                chalkSize * 0.6,
+                                chalkSize * 0.85,
                             )}
                             color="#fffefa"
                         />
@@ -421,7 +421,7 @@ const ContentContent: React.FC<{
                             startFrame={0}
                             charDelay={4}
                             drawDuration={15}
-                            fontSize={autoSize(section.title, chalkSize * 0.8)}
+                            fontSize={autoSize(section.title, chalkSize * 1.1)}
                             color="#aaddaa"
                         />
                     </div>

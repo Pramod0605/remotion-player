@@ -68,9 +68,9 @@ const DEFAULT_SETTINGS: DevSettings = {
     lineHeight: 1.7,
     textColor: '#e2e8f0',
     avatarPosition: 'right',
-    avatarWidthPercent: 55,
-    avatarHeightPercent: 90,
-    avatarRight: -20,
+    avatarWidthPercent: 40,
+    avatarHeightPercent: 95,
+    avatarRight: 0,
     avatarBottom: 0,
     animationSpeed: 1.0,
 };

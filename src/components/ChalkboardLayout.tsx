@@ -1,12 +1,13 @@
 /**
  * ChalkboardLayout — Shared layout for V2 chalkboard theme.
  *
- * Avatar is ALWAYS visible (transparent chroma key).
- * Board expands/collapses based on DevConfig.chalkboardExpanded.
- * Avatar position/size follows section-type rules:
- *   - intro: center, 75%
- *   - others: right, 55%
- * Dev Mode overrides take priority.
+ * The chalkboard fills the ENTIRE 16:9 frame (like a real classroom wall).
+ * Avatar overlays on the right side, standing "in front of" the board.
+ *
+ * Modes:
+ *   - intro: no board — classroom bg + centered avatar + text overlay
+ *   - fullscreenOverride: no board — avatar behind + fullscreen content
+ *   - default: full-frame board + avatar overlay on right + content on left
  */
 import React from 'react';
 import { AbsoluteFill } from 'remotion';
@@ -31,54 +32,40 @@ export const ChalkboardLayout: React.FC<ChalkboardLayoutProps> = ({
     const { settings } = useDevConfig();
 
     // ── Avatar placement rules ───────────────────────────
-    // Defaults based on section type
     const isIntro = sectionType === 'intro';
-    const defaultPosition = isIntro ? 'center' : 'right';
-    const defaultWidth = isIntro ? 75 : 55;
-    const defaultHeight = isIntro ? 85 : 90;
+    const defaultWidth = isIntro ? 60 : 40;
+    const defaultHeight = isIntro ? 90 : 95;
 
-    // Dev Mode overrides (if user has changed from default)
-    const avatarPosition = settings.avatarPosition || defaultPosition;
     const avatarWidth = settings.avatarWidthPercent || defaultWidth;
     const avatarHeight = settings.avatarHeightPercent || defaultHeight;
 
-    const expanded = settings.chalkboardExpanded;
-
-    // ── Board sizing ─────────────────────────────────────
-    // Expanded: board fills display. Collapsed: board on left.
-    const boardWidth = expanded
-        ? 'calc(100% - 20px)'
-        : `calc(${Math.max(30, 100 - avatarWidth)}% - 40px)`;
-
-    // ── Avatar positioning ───────────────────────────────
-    const avatarStyle: React.CSSProperties = avatarPosition === 'center'
+    // Avatar always anchored at bottom-right, overlaid on the board
+    const avatarStyle: React.CSSProperties = isIntro
         ? {
             position: 'absolute',
             left: '50%',
-            bottom: settings.avatarBottom,
+            bottom: 0,
             transform: 'translateX(-50%)',
             width: `${avatarWidth}%`,
             height: `${avatarHeight}%`,
-            zIndex: 1,  // behind content
+            zIndex: 2,
         }
         : {
             position: 'absolute',
-            right: settings.avatarRight,
-            bottom: settings.avatarBottom,
+            right: 0,
+            bottom: 0,
             width: `${avatarWidth}%`,
             height: `${avatarHeight}%`,
-            zIndex: 1,  // behind content
+            zIndex: 4,  // in front of board content
         };
 
     // ── FULLSCREEN OVERRIDE (video mode) ─────────────────
     if (fullscreenOverride) {
         return (
             <AbsoluteFill style={{ backgroundColor: '#111111', overflow: 'hidden' }}>
-                {/* Avatar always visible behind */}
-                <div style={avatarStyle}>
+                <div style={{ ...avatarStyle, zIndex: 1 }}>
                     <ChromaKeyVideo src={avatarSrc} />
                 </div>
-                {/* Fullscreen content on top */}
                 <div style={{ position: 'absolute', inset: 0, zIndex: 5 }}>
                     {children}
                 </div>
@@ -87,10 +74,9 @@ export const ChalkboardLayout: React.FC<ChalkboardLayoutProps> = ({
     }
 
     // ── INTRO MODE (no board — avatar + text overlay) ────
-    if (sectionType === 'intro') {
+    if (isIntro) {
         return (
             <AbsoluteFill style={{ backgroundColor: '#111111', overflow: 'hidden' }}>
-                {/* Classroom ambient background */}
                 <div style={{
                     position: 'absolute', inset: 0,
                     background: `
@@ -98,13 +84,9 @@ export const ChalkboardLayout: React.FC<ChalkboardLayoutProps> = ({
           linear-gradient(180deg, #0e0e0e 0%, #1a1510 50%, #0e0e0e 100%)
         `,
                 }} />
-
-                {/* Avatar centered and large */}
                 <div style={avatarStyle}>
                     <ChromaKeyVideo src={avatarSrc} />
                 </div>
-
-                {/* Text overlay on top of avatar */}
                 <div style={{
                     position: 'absolute', inset: 0,
                     display: 'flex', flexDirection: 'column',
@@ -117,41 +99,19 @@ export const ChalkboardLayout: React.FC<ChalkboardLayoutProps> = ({
         );
     }
 
+    // ── DEFAULT: Full-frame chalkboard + avatar overlay ──
+    // Content area avoids the avatar zone on the right
+    const contentRightMargin = `${avatarWidth - 5}%`;
+
     return (
-        <AbsoluteFill style={{ backgroundColor: '#111111', overflow: 'hidden' }}>
-            {/* Classroom ambient background */}
+        <AbsoluteFill style={{ overflow: 'hidden' }}>
+            {/* ── CHALKBOARD fills entire frame ── */}
             <div style={{
                 position: 'absolute', inset: 0,
-                background: `
-          radial-gradient(ellipse at 30% 50%, rgba(40, 28, 16, 0.5) 0%, transparent 60%),
-          radial-gradient(ellipse at 70% 80%, rgba(20, 15, 10, 0.3) 0%, transparent 50%),
-          linear-gradient(180deg, #0e0e0e 0%, #1a1510 50%, #0e0e0e 100%)
-        `,
-            }} />
-
-            {/* ── AVATAR (always visible, behind board) ── */}
-            <div style={avatarStyle}>
-                <ChromaKeyVideo src={avatarSrc} />
-            </div>
-
-            {/* ── CHALKBOARD ── */}
-            <div style={{
-                position: 'absolute',
-                left: expanded ? 10 : 20,
-                top: expanded ? 10 : 20,
-                width: boardWidth,
-                bottom: expanded ? 10 : 20,
-                borderRadius: 6,
-                overflow: 'hidden',
-                // Wood frame
-                border: '14px solid transparent',
+                // Wood frame border
+                border: '12px solid transparent',
                 borderImage: 'linear-gradient(135deg, #5c3a1e, #8b6914, #6b4423, #5c3a1e) 1',
-                boxShadow: `
-          0 4px 20px rgba(0,0,0,0.6),
-          inset 0 0 80px rgba(0,0,0,0.25),
-          0 0 0 3px #3a2510
-        `,
-                zIndex: 2,
+                boxShadow: '0 0 0 3px #3a2510',
             }}>
                 {/* Green board surface */}
                 <div style={{
@@ -163,7 +123,7 @@ export const ChalkboardLayout: React.FC<ChalkboardLayoutProps> = ({
           `,
                 }} />
 
-                {/* Chalk smudge texture overlay */}
+                {/* Chalk smudge texture */}
                 <div style={{
                     position: 'absolute', inset: 0,
                     background: `
@@ -175,30 +135,35 @@ export const ChalkboardLayout: React.FC<ChalkboardLayoutProps> = ({
                 }} />
 
                 {/* Chalk dust particles */}
-                <ChalkDust count={50} />
+                <ChalkDust count={60} />
 
-                {/* Chalk tray */}
+                {/* Chalk tray at bottom */}
                 <div style={{
                     position: 'absolute',
                     bottom: 0, left: 0, right: 0,
-                    height: 18,
+                    height: 14,
                     background: 'linear-gradient(to bottom, #4a2e14, #5c3a1e, #6b4423)',
                     borderTop: '2px solid #7a5030',
                     zIndex: 5,
                 }} />
+            </div>
 
-                {/* ── CONTENT ZONE (inside the board) ── */}
-                <div style={{
-                    position: 'absolute',
-                    top: 20, left: 24, right: 24,
-                    bottom: 28,  // above chalk tray
-                    overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    zIndex: 3,
-                }}>
-                    {children}
-                </div>
+            {/* ── CONTENT ZONE (left side, clear of avatar) ── */}
+            <div style={{
+                position: 'absolute',
+                top: 24, left: 28, bottom: 24,
+                right: contentRightMargin,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                zIndex: 3,
+            }}>
+                {children}
+            </div>
+
+            {/* ── AVATAR (overlaid on right side of board) ── */}
+            <div style={avatarStyle}>
+                <ChromaKeyVideo src={avatarSrc} />
             </div>
         </AbsoluteFill>
     );

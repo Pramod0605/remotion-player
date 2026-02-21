@@ -14,8 +14,14 @@ import { computeSegmentFrames, FPS } from './utils/timing';
 import type { PresentationJSON, Section, SegmentFrameRange } from './types';
 import './App.css';
 
-// Default job to load
+// Default job to load (fallback if no ?job= param)
 const DEFAULT_JOB = 'SocialScience_20260217095902550_4619a574';
+
+// Read job from URL query param
+const getJobFromUrl = (): string => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('job') || DEFAULT_JOB;
+};
 
 // Hardcoded avatar durations (seconds) — derived from actual MP4 files
 // In production, these would be read dynamically via getVideoMetadata
@@ -35,7 +41,7 @@ const AVATAR_DURATIONS: Record<string, Record<number, number>> = {
 function App() {
   const [presentation, setPresentation] = useState<PresentationJSON | null>(null);
   const [selectedSectionId, setSelectedSectionId] = useState<number>(1);
-  const [jobId, setJobId] = useState<string>(DEFAULT_JOB);
+  const [jobId, setJobId] = useState<string>(getJobFromUrl);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

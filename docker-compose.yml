@@ -1,0 +1,31 @@
+services:
+  # ── Production ────────────────────────────────────────
+  remotion-player:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./jobs:/app/jobs
+    environment:
+      - PORT=3000
+    restart: unless-stopped
+    profiles: [ "prod" ]
+
+  # ── Development (hot reload) ──────────────────────────
+  remotion-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./jobs:/app/jobs
+      - ./index.html:/app/index.html
+      - ./vite.config.ts:/app/vite.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./tsconfig.app.json:/app/tsconfig.app.json
+    environment:
+      - NODE_ENV=development
+    profiles: [ "dev" ]

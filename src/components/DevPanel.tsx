@@ -126,6 +126,69 @@ export const DevPanel: React.FC = () => {
                         </button>
                     </div>
 
+                    {/* ── V2: CHALKBOARD CONTROLS ── */}
+                    {settings.playerVersion === 'v2' && (
+                        <>
+                            <SectionLabel label="Chalkboard" />
+                            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+                                <button
+                                    onClick={() => updateSetting('chalkboardExpanded', false)}
+                                    style={{
+                                        flex: 1, padding: '6px 10px', border: 'none', borderRadius: 6,
+                                        fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                                        backgroundColor: !settings.chalkboardExpanded ? 'rgba(74, 124, 89, 0.3)' : 'rgba(255,255,255,0.04)',
+                                        color: !settings.chalkboardExpanded ? '#aaddaa' : '#8b949e',
+                                        borderWidth: 1, borderStyle: 'solid',
+                                        borderColor: !settings.chalkboardExpanded ? 'rgba(74, 124, 89, 0.5)' : 'transparent',
+                                    }}
+                                >
+                                    🔲 Split View
+                                </button>
+                                <button
+                                    onClick={() => updateSetting('chalkboardExpanded', true)}
+                                    style={{
+                                        flex: 1, padding: '6px 10px', border: 'none', borderRadius: 6,
+                                        fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                                        backgroundColor: settings.chalkboardExpanded ? 'rgba(74, 124, 89, 0.3)' : 'rgba(255,255,255,0.04)',
+                                        color: settings.chalkboardExpanded ? '#aaddaa' : '#8b949e',
+                                        borderWidth: 1, borderStyle: 'solid',
+                                        borderColor: settings.chalkboardExpanded ? 'rgba(74, 124, 89, 0.5)' : 'transparent',
+                                    }}
+                                >
+                                    📐 Expand Board
+                                </button>
+                            </div>
+                            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+                                <button
+                                    onClick={() => updateSetting('avatarPosition', 'center')}
+                                    style={{
+                                        flex: 1, padding: '6px 10px', border: 'none', borderRadius: 6,
+                                        fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                                        backgroundColor: settings.avatarPosition === 'center' ? 'rgba(74, 124, 89, 0.3)' : 'rgba(255,255,255,0.04)',
+                                        color: settings.avatarPosition === 'center' ? '#aaddaa' : '#8b949e',
+                                        borderWidth: 1, borderStyle: 'solid',
+                                        borderColor: settings.avatarPosition === 'center' ? 'rgba(74, 124, 89, 0.5)' : 'transparent',
+                                    }}
+                                >
+                                    🧑‍🏫 Avatar Center
+                                </button>
+                                <button
+                                    onClick={() => updateSetting('avatarPosition', 'right')}
+                                    style={{
+                                        flex: 1, padding: '6px 10px', border: 'none', borderRadius: 6,
+                                        fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                                        backgroundColor: settings.avatarPosition === 'right' ? 'rgba(74, 124, 89, 0.3)' : 'rgba(255,255,255,0.04)',
+                                        color: settings.avatarPosition === 'right' ? '#aaddaa' : '#8b949e',
+                                        borderWidth: 1, borderStyle: 'solid',
+                                        borderColor: settings.avatarPosition === 'right' ? 'rgba(74, 124, 89, 0.5)' : 'transparent',
+                                    }}
+                                >
+                                    ➡️ Avatar Right
+                                </button>
+                            </div>
+                        </>
+                    )}
+
                     {/* ── TEXT ANIMATION (V1 only) ── */}
                     <SectionLabel label="Text Animation" />
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginBottom: 12 }}>

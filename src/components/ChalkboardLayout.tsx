@@ -1,9 +1,12 @@
 /**
  * ChalkboardLayout — Shared layout for V2 chalkboard theme.
  *
- * Left: Realistic chalkboard panel (green board, wood frame, dust, tray)
- * Right: Avatar with chroma key
- * Content (text, videos, images) renders inside the chalkboard zone.
+ * Avatar is ALWAYS visible (transparent chroma key).
+ * Board expands/collapses based on DevConfig.chalkboardExpanded.
+ * Avatar position/size follows section-type rules:
+ *   - intro: center, 75%
+ *   - others: right, 55%
+ * Dev Mode overrides take priority.
  */
 import React from 'react';
 import { AbsoluteFill } from 'remotion';
@@ -13,17 +16,106 @@ import { useDevConfig } from './DevConfig';
 
 interface ChalkboardLayoutProps {
     avatarSrc: string;
+    sectionType?: string;
+    /** When true, board is hidden and only avatar+children render (for fullscreen video) */
+    fullscreenOverride?: boolean;
     children: React.ReactNode;
 }
 
 export const ChalkboardLayout: React.FC<ChalkboardLayoutProps> = ({
     avatarSrc,
+    sectionType = 'content',
+    fullscreenOverride = false,
     children,
 }) => {
     const { settings } = useDevConfig();
 
-    // Chalkboard takes the left, avatar takes the right
-    const boardWidth = Math.max(30, 100 - settings.avatarWidthPercent);
+    // ── Avatar placement rules ───────────────────────────
+    // Defaults based on section type
+    const isIntro = sectionType === 'intro';
+    const defaultPosition = isIntro ? 'center' : 'right';
+    const defaultWidth = isIntro ? 75 : 55;
+    const defaultHeight = isIntro ? 85 : 90;
+
+    // Dev Mode overrides (if user has changed from default)
+    const avatarPosition = settings.avatarPosition || defaultPosition;
+    const avatarWidth = settings.avatarWidthPercent || defaultWidth;
+    const avatarHeight = settings.avatarHeightPercent || defaultHeight;
+
+    const expanded = settings.chalkboardExpanded;
+
+    // ── Board sizing ─────────────────────────────────────
+    // Expanded: board fills display. Collapsed: board on left.
+    const boardWidth = expanded
+        ? 'calc(100% - 20px)'
+        : `calc(${Math.max(30, 100 - avatarWidth)}% - 40px)`;
+
+    // ── Avatar positioning ───────────────────────────────
+    const avatarStyle: React.CSSProperties = avatarPosition === 'center'
+        ? {
+            position: 'absolute',
+            left: '50%',
+            bottom: settings.avatarBottom,
+            transform: 'translateX(-50%)',
+            width: `${avatarWidth}%`,
+            height: `${avatarHeight}%`,
+            zIndex: 1,  // behind content
+        }
+        : {
+            position: 'absolute',
+            right: settings.avatarRight,
+            bottom: settings.avatarBottom,
+            width: `${avatarWidth}%`,
+            height: `${avatarHeight}%`,
+            zIndex: 1,  // behind content
+        };
+
+    // ── FULLSCREEN OVERRIDE (video mode) ─────────────────
+    if (fullscreenOverride) {
+        return (
+            <AbsoluteFill style={{ backgroundColor: '#111111', overflow: 'hidden' }}>
+                {/* Avatar always visible behind */}
+                <div style={avatarStyle}>
+                    <ChromaKeyVideo src={avatarSrc} />
+                </div>
+                {/* Fullscreen content on top */}
+                <div style={{ position: 'absolute', inset: 0, zIndex: 5 }}>
+                    {children}
+                </div>
+            </AbsoluteFill>
+        );
+    }
+
+    // ── INTRO MODE (no board — avatar + text overlay) ────
+    if (sectionType === 'intro') {
+        return (
+            <AbsoluteFill style={{ backgroundColor: '#111111', overflow: 'hidden' }}>
+                {/* Classroom ambient background */}
+                <div style={{
+                    position: 'absolute', inset: 0,
+                    background: `
+          radial-gradient(ellipse at 50% 60%, rgba(40, 28, 16, 0.5) 0%, transparent 60%),
+          linear-gradient(180deg, #0e0e0e 0%, #1a1510 50%, #0e0e0e 100%)
+        `,
+                }} />
+
+                {/* Avatar centered and large */}
+                <div style={avatarStyle}>
+                    <ChromaKeyVideo src={avatarSrc} />
+                </div>
+
+                {/* Text overlay on top of avatar */}
+                <div style={{
+                    position: 'absolute', inset: 0,
+                    display: 'flex', flexDirection: 'column',
+                    justifyContent: 'center', alignItems: 'center',
+                    zIndex: 5,
+                }}>
+                    {children}
+                </div>
+            </AbsoluteFill>
+        );
+    }
 
     return (
         <AbsoluteFill style={{ backgroundColor: '#111111', overflow: 'hidden' }}>
@@ -37,12 +129,18 @@ export const ChalkboardLayout: React.FC<ChalkboardLayoutProps> = ({
         `,
             }} />
 
-            {/* ── CHALKBOARD (left side) ── */}
+            {/* ── AVATAR (always visible, behind board) ── */}
+            <div style={avatarStyle}>
+                <ChromaKeyVideo src={avatarSrc} />
+            </div>
+
+            {/* ── CHALKBOARD ── */}
             <div style={{
                 position: 'absolute',
-                left: 20, top: 20,
-                width: `calc(${boardWidth}% - 40px)`,
-                bottom: 20,
+                left: expanded ? 10 : 20,
+                top: expanded ? 10 : 20,
+                width: boardWidth,
+                bottom: expanded ? 10 : 20,
                 borderRadius: 6,
                 overflow: 'hidden',
                 // Wood frame
@@ -101,18 +199,6 @@ export const ChalkboardLayout: React.FC<ChalkboardLayoutProps> = ({
                 }}>
                     {children}
                 </div>
-            </div>
-
-            {/* ── AVATAR (right side) ── */}
-            <div style={{
-                position: 'absolute',
-                right: settings.avatarRight,
-                bottom: settings.avatarBottom,
-                width: `${settings.avatarWidthPercent}%`,
-                height: `${settings.avatarHeightPercent}%`,
-                zIndex: 4,
-            }}>
-                <ChromaKeyVideo src={avatarSrc} />
             </div>
         </AbsoluteFill>
     );

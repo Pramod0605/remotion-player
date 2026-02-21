@@ -33,7 +33,7 @@ export const ChromaKeyVideo: React.FC<ChromaKeyVideoProps> = ({
     spillSuppression = 0.5,
 }) => {
     const frame = useCurrentFrame();
-    const { fps } = useVideoConfig();
+    useVideoConfig();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
 

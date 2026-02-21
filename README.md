@@ -97,11 +97,65 @@ npx vitest run
 
 | Type | V1 Rendering | V2 Rendering |
 |------|-------------|-------------|
-| `intro` | Gradient + particles + animated title | Chalk title with decorative lines |
+| `intro` | Gradient + particles + animated title | Avatar centered with chalk text overlay (no board) |
 | `summary` | Bullet list with spring reveals | Progressive chalk bullets |
-| `content` | Teach (text) / Show (video/image) | Chalk text or media inside board |
+| `content` | Teach (text) / Show (video/image) | Text on board; **video fullscreen** with avatar behind |
 | `memory` | 3D flip flashcards | Chalk Q&A with fade-flip |
-| `recap` | Video with animated subtitles | Video inside board + chalk subtitle |
+| `recap` | Video with animated subtitles | **Video fullscreen** or text on board |
+
+---
+
+## 🐳 Docker Deployment
+
+The player runs as a **microservice** inside Docker. Jobs are mounted as volumes.
+
+### Production
+
+```bash
+# Build and run
+docker compose --profile prod up --build -d
+
+# Access at http://localhost:3000/?job=YOUR_JOB_ID
+```
+
+### Development (Hot Reload)
+
+```bash
+# Runs Vite dev server inside Docker with HMR
+docker compose --profile dev up --build
+
+# Access at http://localhost:5173/?job=YOUR_JOB_ID
+# Edit src/ files — changes reflect instantly
+```
+
+### Server Deployment
+
+On your server (e.g. `/ai-presentation-server/player/jobs/{job-id}`):
+
+```yaml
+# docker-compose.override.yml
+services:
+  remotion-player:
+    volumes:
+      - /ai-presentation-server/player/jobs:/app/jobs
+```
+
+The container always serves jobs at `http://host:3000/jobs/{job-id}/*` regardless of the host path.
+
+### API Endpoints
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/health` | Health check — `{"status":"ok"}` |
+| `GET /api/jobs` | List available jobs with `presentation.json` |
+| `GET /?job=ID` | Load player with specific job |
+
+### Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `3000` | Server port |
+| `JOBS_DIR` | `/app/jobs` | Path to jobs directory inside container |
 
 ---
 
@@ -110,6 +164,7 @@ npx vitest run
 - **React 19** + **TypeScript**
 - **Remotion** — frame-accurate video composition
 - **Vite** — dev server and build
+- **Express** — production server (Docker)
 - **Vitest** — unit testing
 
 ---

@@ -37,6 +37,9 @@ export interface DevSettings {
     // Player theme
     playerVersion: PlayerVersion;
 
+    // Chalkboard
+    chalkboardExpanded: boolean;
+
     // Text
     textAnimation: TextAnimationMode;
     fontSize: number;         // px (14-40)
@@ -45,6 +48,7 @@ export interface DevSettings {
     textColor: string;        // hex color
 
     // Avatar
+    avatarPosition: 'center' | 'right';
     avatarWidthPercent: number;   // 30-70
     avatarHeightPercent: number;  // 50-100
     avatarRight: number;          // px offset (-100 to 100)
@@ -57,13 +61,15 @@ export interface DevSettings {
 const DEFAULT_SETTINGS: DevSettings = {
     devMode: false,
     playerVersion: 'v2',
+    chalkboardExpanded: false,
     textAnimation: 'word_bounce',
     fontSize: 18,
     fontWeight: 400,
     lineHeight: 1.7,
     textColor: '#e2e8f0',
+    avatarPosition: 'right',
     avatarWidthPercent: 55,
-    avatarHeightPercent: 95,
+    avatarHeightPercent: 90,
     avatarRight: -20,
     avatarBottom: 0,
     animationSpeed: 1.0,

@@ -111,10 +111,12 @@ export const ChromaKeyVideo: React.FC<ChromaKeyVideoProps> = ({
         }
     }, [frame, keyColor, detectKeyColor]);
 
+    // Only process frames after we've detected the key color
     useEffect(() => {
-        const timer = setTimeout(processFrame, 16);
+        if (!keyColor) return;
+        const timer = setTimeout(processFrame, 50);
         return () => clearTimeout(timer);
-    }, [frame, processFrame]);
+    }, [frame, keyColor, processFrame]);
 
     useEffect(() => {
         const video = videoRef.current;

@@ -159,6 +159,77 @@ The container always serves jobs at `http://host:3000/jobs/{job-id}/*` regardles
 
 ---
 
+## 🤖 AI Code Analysis (code-review-graph)
+
+This project uses [code-review-graph](https://github.com/tirth8205/code-review-graph) for AI-assisted code review and exploration.
+
+### Why?
+
+- **8.2x fewer tokens** — AI reads only affected code, not entire codebase
+- **Blast radius analysis** — shows exactly what might break when you change something
+- **Local knowledge graph** — understands callers, dependents, test coverage
+
+### First Time Setup
+
+```bash
+# Install
+pip install code-review-graph
+
+# Configure for your AI tool
+code-review-graph install --platform opencode   # for OpenCode
+code-review-graph install --platform claude-code  # for Claude Code
+code-review-graph install --platform cursor  # for Cursor
+
+# Build the knowledge graph
+code-review-graph build
+```
+
+### Daily Workflow
+
+```bash
+# After pulling new code from GitHub
+code-review-graph update   # fast incremental update
+
+# Or rebuild completely
+code-review-graph build
+
+# Check graph status
+code-review-graph status
+
+# Open interactive graph viewer
+code-review-graph visualize
+```
+
+### How It Works
+
+1. **Install once** — tool auto-detects your IDE and configures MCP server
+2. **Build graph** — parses all code into nodes (functions, classes, imports) and edges (calls, dependencies)
+3. **Use AI tools** — when you ask questions, AI queries the graph instead of scanning files
+4. **After commit** — run `code-review-graph update` to sync your local graph
+
+### Key Commands
+
+| Command | Description |
+|---------|-------------|
+| `code-review-graph build` | Build/rebuild full graph |
+| `code-review-graph update` | Incremental update (faster) |
+| `code-review-graph status` | Show stats (nodes, edges, files) |
+| `code-review-graph detect-changes` | Risk-scored change analysis |
+| `code-review-graph visualize` | Interactive graph in browser |
+
+### For AI Agents
+
+When analyzing code, agents should use graph tools **before** Grep/Glob/Read:
+
+- `semantic_search_nodes` — find functions/classes by name
+- `query_graph` — trace callers, callees, imports, tests
+- `get_impact_radius` — understand blast radius of changes
+- `detect_changes` — risk-scored code review
+
+See `AGENTS.md` for complete MCP tool documentation.
+
+---
+
 ## 🔧 Tech Stack
 
 - **React 19** + **TypeScript**
